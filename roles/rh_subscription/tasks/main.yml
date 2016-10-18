@@ -1,0 +1,18 @@
+---
+- name: RedHat Subscription Manager
+  redhat_subscription: state=present
+                       username={{ subscription_username }} password={{ subscription_password }}
+                       autosubscribe=true
+                       force_register=yes
+
+# https://bugzilla.redhat.com/show_bug.cgi?id=1283739
+- name: Refresh Pool Enable Repos
+  command: "{{ item }}"
+  with_items:
+    - subscription-manager remove --all
+    - sleep 15
+    - subscription-manager attach --pool={{ subscription_pool_id }}
+    - subscription-manager repos --disable="*"
+    - subscription-manager repos --enable='rhel-7-server-rpms'
+    - subscription-manager repos --enable='rhel-7-server-extras-rpms'
+

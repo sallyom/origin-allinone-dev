@@ -1,0 +1,8 @@
+---
+# Grant admin access to a user so you can check out the web console, login with admin/password
+- name: grant_admin_acces
+  command: "{{ item }}"
+  with_items:
+    - oc login -u admin -p password
+    - oc login -u system:admin
+    - oadm policy add-cluster-role-to-user cluster-admin admin

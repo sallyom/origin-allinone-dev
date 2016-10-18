@@ -1,0 +1,33 @@
+---
+# This example launches a rhel7 AMI
+- name: create an EC2 instance
+  ec2:
+    key_name: "{{ key_name }}"
+    region: "{{ aws_region }}"
+    instance_type: "{{ instance_type }}"
+    image: "{{ ami_id }}"
+    vpc_subnet_id: "{{ vpc_subnet_id }}"
+    group_id: "{{ security_groups }}"
+    user_data: "{{ lookup('template', 'templates/user_data.j2') }}"
+    instance_tags: "{{ instance_tags }}"
+    exact_count: 1
+    count_tag: "{{ instance_tags }}"
+    wait: yes
+    wait_timeout: 300
+  register: ec2
+
+- name: Add new instances to dynamic host group for deployment
+  add_host:
+    groups: launched
+    name: "{{ item.public_dns_name }}"
+  with_items: "{{ ec2.instances }}"
+
+- name: Wait for SSH to come up
+  wait_for:
+    host: "{{ item.public_dns_name }}"
+    state: started
+    port: 22
+    delay: 120
+    timeout: 320
+  with_items: "{{ ec2.instances }}"
+

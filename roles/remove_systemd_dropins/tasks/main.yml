@@ -1,0 +1,39 @@
+---
+- name: Check for origin _output dir
+  stat: path=/data/origin/_output
+  register: origin_output_dir
+
+- name: Remove binaries from origin
+  file: path=/data/origin/_output state=absent
+  when: origin_output_dir.stat.exists
+
+- name: Check for master dropin dir
+  stat: path=/etc/systemd/system/origin-master.service.d
+  register: master_dropin
+
+- name: Check for node dropin dir
+  stat: path=/etc/systemd/system/origin-node.service.d
+  register: node_dropin
+
+- name: Remove /etc/systemd/system/origin-master.service.d directory
+  file: path=/etc/systemd/system/origin-master.service.d state=absent
+  when: master_dropin.stat.exists
+
+- name: Remove /etc/systemd/system/origin-node.service.d directory
+  file: path=/etc/systemd/system/origin-node.service.d state=absent
+  when: node_dropin.stat.exists
+
+# This removes the path to the locally built binaries at 
+# /data/origin/_output/local/bin/linux/amd64 if those binaries exist.
+- name: Set PATH
+  lineinfile: dest=/etc/profile.d/openshift.sh regexp='^(.*)PATH' line='export PATH=/bin:/usr/local/sbin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin:/root/bin'
+
+- name: restart openshift services
+  command: "{{ item }}"
+  with_items:
+    - systemctl daemon-reload
+    - systemctl restart origin-master
+    - systemctl restart origin-node
+  failed_when: False
+  when: node_dropin.stat.exists or master_dropin.stat.exists
+

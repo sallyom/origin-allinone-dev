@@ -1,0 +1,134 @@
+---
+- name: 'Set AWS creds, ssh_config, facts'
+  hosts: localhost
+  connection: local
+  vars_files:
+  - vars/user_vars.yml
+  - vars/launch_vars.yml
+  roles:
+  - set_awscreds_ssh_facts
+  tags: set_awscreds_ssh_facts
+
+- name: 'Launch ec2 instance'
+  hosts: localhost
+  connection: local
+  vars_files:
+  - vars/launch_vars.yml
+  - vars/user_vars.yml
+  roles:
+  - launch_ec2
+  post_tasks:
+  - add_host:
+      name: "{{ item }}"
+      groups: OSEv3,masters,nodes,etcd
+    with_items: "{{ groups.launched | default([]) | union(groups['tag_Name_' ~ instance_name] | default([])) }}"
+  tags: launch_openshift_devenv
+
+#- name: 'Copy any necessary files to ec2'
+#  hosts: OSEv3
+#  remote_user: ec2-user
+#  vars_files:
+#  - vars/user_vars.yml
+#  roles:
+#  - copy_files
+#  tags: copy_files
+
+- name: 'Check subscription-manager enabled repos'
+  hosts: OSEv3
+  vars_files:
+  - vars/launch_vars.yml
+  roles:
+  - check_rhel_centos_gather_facts
+  tags: check_rhel_centos_gather_facts
+
+- include: rh_subscription.yml
+  vars:
+    os: "{{ hostvars.localhost.os }}"
+    rh_subscription_enabled: "{{ hostvars.localhost.rh_subscription_enabled }}"
+  when: "not {{ rh_subscription_enabled }} and '{{ os }}' == 'rhel7'"
+  tags: rh_subscription
+
+- include: remove_systemd_dropins.yml
+  vars:
+    from_local_origin: "{{ hostvars.localhost.from_local_origin }}"
+  when: not from_local_origin
+  tags: remove_systemd_dropins 
+
+# Our devenv-rhel7 AMIs have /etc/profile.d/openshift.sh so we have to clear and set path/kubeconfig
+- name: 'Set PATH, yum update, configure'
+  hosts: OSEv3
+  vars_files:
+  - vars/launch_vars.yml
+  - vars/user_vars.yml
+  roles:
+  - set_path_configure
+  tags: set_path_configure
+
+# You can replace 'xip.io' with a custom DNS server
+# Configuration examples/options here:
+# https://raw.githubusercontent.com/openshift/openshift-ansible/master/inventory/byo/hosts.ose.example
+#
+# openshift-ansible is a submodule in this repo.
+- include: openshift-ansible/playbooks/byo/config.yml
+  vars:
+    deployment_type: origin
+    cluster_id: devenv-origin
+    openshift_additional_repos:
+    - id: openshift-origin-copr
+      name: OpenShift Origin COPR
+      baseurl: 'https://copr-be.cloud.fedoraproject.org/results/maxamillion/origin-next/epel-7-$basearch'
+      enabled: 1
+      gpgcheck': 1
+      gpgkey: 'https://copr-be.cloud.fedoraproject.org/results/maxamillion/origin-next/pubkey.gpg'
+    openshift_master_cluster_method: native
+    openshift_node_labels: "{'region': 'us-east-1', 'type': 'infra'}"
+    openshift_scheduleable: True
+    osm_default_subdomain: "{{ hostvars[groups['OSEv3'][0]].ansible_ec2_public_ipv4 }}.xip.io"
+    openshift_hosted_registry_selector: 'type=infra'
+    openshift_hosted_router_selector: 'type=infra'
+    openshift_master_dynamic_provisioning_enabled: True
+    openshift_master_identity_providers:
+    - name: allow_all
+      kind: AllowAllPasswordIdentityProvider
+      login: true
+      challenge: true
+      mappingMethod: add
+    openshift_master_image_policy_config: {"maxImagesBulkImportedPerRepository": 3, "disableScheduledImport": true}
+    openshift_cloudprovider_aws_access_key: "{{ hostvars.localhost.AWS_ACCESS_KEY_ID }}"
+    openshift_cloudprovider_aws_secret_key: "{{ hostvars.localhost.AWS_SECRET_ACCESS_KEY }}"
+  tags: start_openshift_cluster
+
+
+# If playbook is run with '-e LOCAL_BUILD=True', this playbook will run and
+# requires a local origin repo, since the local origin repo will be synced.
+# If the /data/src/github.com/openshift/origin/_output/local/bin/linux/amd64/openshift|oc|oadm
+# binaries already exist, they will not be built.  If they do not exist,
+# this playbook will run 'make' in /data/src/github.com/openshift/origin in the ec2.
+# Then the openshift|oadm|oc binaries will be used to start atomic-openshift services.
+- include: restart_with_locally_built_binaries.yml
+  vars:
+    from_local_origin: "{{ hostvars.localhost.from_local_origin }}"
+    local_origin_path: "{{ hostvars.localhost.local_origin_path }}"
+  when: from_local_origin
+
+- name: "Grant admin access"
+  hosts: OSEv3
+  roles: 
+  - grant_admin_access
+  tags: grant_admin_access
+
+- name: "Deployment example app"
+  hosts: OSEv3
+  vars_files:
+  - "{{ hostvars.localhost.origin_allinone_dev_path }}/vars/user_vars.yml"
+  roles: 
+  - my_app_deploy
+  tags: my_app_deploy
+
+- name: "Print info"
+  hosts: OSEv3
+  vars:
+    public_dns_name: "{{ hostvars[groups['OSEv3'][0]].ansible_ec2_public_hostname }}"
+  roles:
+  - print_console_debug
+  tags: print_console_debug

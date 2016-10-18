@@ -1,0 +1,13 @@
+---
+- debug:
+    msg: "The router will re-launch and takes a few minutes to become healthy..."
+
+- debug:
+    msg: "Access the console at: https://{{ public_dns_name }}:8443   use admin/password"
+
+- debug:
+    msg: "To login from local: 'oc login -u admin -p password {{ public_dns_name }}:8443' "
+
+- debug:
+    msg: "router and registry will deploy and become healthy after a few (4-5) minutes."
+

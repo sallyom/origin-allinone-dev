@@ -1,0 +1,9 @@
+---
+# This is an example role to copy a single necessary local files to your ec2 instance
+# You might also consider Ansible's synchronize module:
+# http://docs.ansible.com/ansible/synchronize_module.html
+#- name: Sync a necessary file
+#  copy:
+#    src: "{{ path_to_local_src_file }}"
+#    dest: "{{ path_where_you_want_it_in_ec2 }}"
+#    force: yes

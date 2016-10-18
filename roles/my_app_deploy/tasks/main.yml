@@ -1,0 +1,18 @@
+---
+# This is an example deploy role for an example app, cater to your needs
+# Since this is development, I'm starting fresh each time. You may not want to.
+- name: Delete myproject to start fresh
+  command: oc delete project myproject
+  ignore_errors: True
+
+- pause: seconds=10
+
+- name: Create myproject
+  command: 'oc new-project myproject'
+
+- name: Deploy example app
+  shell: 
+    cmd: 'oc new-app --template=cakephp-mysql-example -n myproject'
+  when:
+    - item == "example_app"
+  with_items: "{{ deploy_components }}"

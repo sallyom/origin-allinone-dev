@@ -1,0 +1,27 @@
+---
+image_prefix: registry.access.redhat.com/openshift3
+
+# If you have any post-cluster deployments you want to launch, you can list them here and add plays to launch them 
+# a cakephp-mysql example app will launch from 'devenv-launch.yml')
+deploy_components: 
+- example_app
+- my_next_app
+- another_app
+
+# Note: Only need these subscription-manager vars if using rhel7 AMI, not with Centos
+# fill in these vars for RedHat Subscription Manager
+subscription_username: fillin
+subscription_password: fillin
+subscription_pool_id: fillin
+
+required_packages:
+- wget
+- git
+- net-tools
+- bind-utils
+- iptables-services
+- bridge-utils
+- bash-completion
+- NetworkManager
+- golang
+

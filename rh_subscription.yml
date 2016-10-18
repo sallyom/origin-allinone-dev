@@ -1,0 +1,8 @@
+---
+- name: "RedHat Subscription Manager"
+  hosts: OSEv3
+  vars_files:
+  - vars/user_vars.yml
+  roles: 
+  - rh_subscription
+

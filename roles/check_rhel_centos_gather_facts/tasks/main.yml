@@ -1,0 +1,28 @@
+---
+- set_fact:
+    os: "{{ os }}"
+
+- name: Determine if rhel-7-server-extras repo enabled
+  shell:
+    cmd: "subscription-manager repos --list | grep rhel-7-server-extras"
+  register: rh_subscription
+  failed_when: rh_subscription.rc != 0
+  ignore_errors: True
+  when: os != "centos7"
+
+- set_fact:
+    rh_subscription_enabled: True
+  when: rh_subscription|succeeded
+
+- set_fact:
+    rh_subscription_enabled: False
+  when: rh_subscription|failed
+
+- name: Gather ec2 facts
+  action: ec2_facts
+
+- debug:
+    msg: "PUBLIC IP- {{ ansible_ec2_public_ipv4 }}"
+
+- debug:
+    msg: "PUBLIC_DNS- {{ ansible_ec2_public_hostname }}" 

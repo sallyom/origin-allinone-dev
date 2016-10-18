@@ -1,0 +1,60 @@
+---
+# Set AWS_SECRET_ACCESS_KEY and AWS_SECRET_KEY_ID facts
+- name: Set AWS_ACCESS_KEY_ID
+  shell:
+    cmd: "awk -F'=' 'NR==2 { print $2 }' ~/.aws/credentials | sed -e 's/^[[:space:]]*//'"
+  no_log: True
+  register: aws_access_key_id
+
+- name: Set AWS_SECRET_ACCESS_KEY
+  shell:
+    cmd: "awk -F'=' 'NR==3 { print $2 }' ~/.aws/credentials | sed -e 's/^[[:space:]]*//'"
+  no_log: True
+  register: aws_secret_access_key
+
+- set_fact:
+    AWS_ACCESS_KEY_ID: "{{ item }}"
+  no_log: True
+  with_items: "{{ aws_access_key_id.stdout }}"
+
+- set_fact:
+    AWS_SECRET_ACCESS_KEY: "{{ item }}"
+  no_log: True
+  with_items: "{{ aws_secret_access_key.stdout }}"
+
+- name: Find default local path to origin-allinone-dev
+  shell:
+    cmd: "pwd"
+  register: origin_allinone_dev_path
+
+- set_fact:
+    origin_allinone_dev_path: "{{ item }}"
+  with_items: "{{ origin_allinone_dev_path.stdout }}"
+
+- debug:
+    msg: "LOCAL ORIGIN-ALLINONE-DEV REPO: {{ hostvars.localhost.origin_allinone_dev_path }}"
+
+- name: Find default local path to origin
+  shell:
+    cmd: "dirname {{ origin_allinone_dev_path }}"
+  register: one_below_origin_allinone_dev_path
+
+- set_fact:
+    default_origin_path: "{{ item }}"
+  with_items: "{{ one_below_origin_allinone_dev_path.stdout }}/origin"
+
+- set_fact:
+    local_origin_path: "{{ local_origin_path }}"
+
+- debug:
+    msg: "LOCAL ORIGIN REPO: {{ hostvars.localhost.local_origin_path }}"
+
+- name: Copy ssh_config to tmp dir
+  shell:
+    cmd: "cp ssh_config /tmp/ssh_config"
+
+
+- set_fact:
+    from_local_origin: "{{ from_local_origin }}"
+
+

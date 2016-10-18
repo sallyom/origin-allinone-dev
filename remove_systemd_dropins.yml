@@ -1,0 +1,9 @@
+---
+- name: 'Remove atomic-openshift services dropin file if not running with LOCAL_BUILD=True'
+  hosts: OSEv3
+  remote_user: root
+  roles:
+  - remove_systemd_dropins
+  tags: remove_systemd_dropins
+
+

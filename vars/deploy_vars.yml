@@ -1,0 +1,11 @@
+---
+my_app_hostname: "my-app-my-project.{{ hostvars[groups['OSEv3'][0]].facter_ec2_public_ipv4 }}.xip.io"
+AWS_ACCESS_KEY_ID: "{{ hostvars.localhost.AWS_ACCESS_KEY_ID }}"
+AWS_SECRET_ACCESS_KEY: "{{ hostvars.localhost.AWS_SECRET_ACCESS_KEY }}"
+CA: /etc/origin/master
+origin_allinone_dev_path: "{{ hostvars.localhost.origin_allinone_dev_path }}"
+
+openshift_templates:
+- a-template.json
+- another-template.json
+
