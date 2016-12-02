@@ -17,7 +17,7 @@ This is an example Ansible playbook that:
 *  Clone this repository:      
    `openshift-ansible` is a submodule in this repository, hence the --recursive 
 ```
-$ git clone --recursive git@github.com:sallyom/example-Ansible-OpenShift-all-in-one.git
+$ git clone --recursive git@github.com:sallyom/origin-allinone-dev
 ```
 *  `$ sudo dnf install ansible`
 *  `$ sudo dnf copr enable abutcher/ansible`  <--you'll want Ansible 2.2
