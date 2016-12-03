@@ -33,7 +33,7 @@
 #  - copy_files
 #  tags: copy_files
 
-- name: 'Check subscription-manager enabled repos'
+- name: 'Check subscription-manager, enabled repos, wait for cloud-init'
   hosts: OSEv3
   vars_files:
   - vars/launch_vars.yml
@@ -67,12 +67,13 @@
 # You can replace 'xip.io' with a custom DNS server
 # Configuration examples/options here:
 # https://raw.githubusercontent.com/openshift/openshift-ansible/master/inventory/byo/hosts.ose.example
-#
+# Waiting for v1.4 to be available in copr...
 # openshift-ansible is a submodule in this repo.
 - include: openshift-ansible/playbooks/byo/config.yml
   vars:
     deployment_type: origin
     cluster_id: devenv-origin
+    openshift_release: v1.3
     openshift_additional_repos:
     - id: openshift-origin-copr
       name: OpenShift Origin COPR
@@ -87,6 +88,9 @@
     openshift_hosted_registry_selector: 'type=infra'
     openshift_hosted_router_selector: 'type=infra'
     openshift_master_dynamic_provisioning_enabled: True
+    openshift_install_examples: True
+    openshift_docker_disable_push_dockerhub: True
+    docker_version: "1.10.3"
     openshift_master_identity_providers:
     - name: allow_all
       kind: AllowAllPasswordIdentityProvider

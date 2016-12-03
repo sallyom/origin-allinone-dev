@@ -25,4 +25,12 @@
     msg: "PUBLIC IP- {{ ansible_ec2_public_ipv4 }}"
 
 - debug:
-    msg: "PUBLIC_DNS- {{ ansible_ec2_public_hostname }}" 
+    msg: "PUBLIC_DNS- {{ ansible_ec2_public_hostname }}"
+
+- debug:
+    msg: "Waiting for cloud-init to finish installing packages..."
+
+- name: Wait for cloud-init to finish, waiting for package installs to complete
+  shell:
+    cmd: 'while ! grep "Cloud-init .* finished" /var/log/cloud-init.log; do echo "$(date -Ins) Waiting for cloud-init to finish" sleep 10; done'
+ 

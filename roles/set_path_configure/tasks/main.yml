@@ -11,26 +11,6 @@
   lineinfile: dest=/etc/profile.d/openshift.sh state=present regexp='^(.*)PATH' line='export PATH=/bin:/usr/local/sbin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin:/root/bin'
   when: '"origin/_output/local/bin/linux/amd64" in which_openshift.stdout and not from_local_origin'
 
-- name: yum clean all
-  command: "yum clean all"
-  when: os == "centos7"
-
-#- "systemctl stop docker"
-#- "yum remove docker-engine -y"
-#- "yum remove docker-engine-selinux -y"
-#- "umount /var/lib/docker"
-#- "rm -rf /var/lib/docker"
-  
-# https://github.com/docker/docker/issues/11135 
-#- name: Remove /etc/systemd/system/docker.service.d 
-#  file: path=/etc/systemd/system/docker.service.d state=absent
-#  when: os  == "centos7"
-
-- name: Install required packages
-  yum: name={{item}} state=present
-  with_items: "{{ required_packages }}"
-  when: os == "centos7"
-
 - name: start, enable NetworkManager
   command: "{{ item }}"
   with_items:
@@ -38,3 +18,13 @@
     - "systemctl start NetworkManager"
   when: os == "centos7"
 
+- name: Download charlie rpm
+  shell:
+    cmd: "{{ item }}"
+  with_items:
+   - 'curl -o /tmp/charlie-0.5-1.el6_2.noarch.rpm https://mirror.openshift.com/pub/oso/rhel-6/x86_64/charlie-0.5-1.el6_2.noarch.rpm'
+
+- name: Install charlie rpm
+  yum:
+    name: /tmp/charlie-0.5-1.el6_2.noarch.rpm
+    state: present

@@ -1,5 +1,6 @@
 #cloud-config
 disable_root: false
+
 write_files:
 - path: /etc/profile.d/openshift.sh
   owner: root:root
@@ -8,6 +9,20 @@ write_files:
     export GOPATH=/data
     export PATH=/data/origin/_output/local/bin/linux/amd64:/bin:/usr/local/sbin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin
     export KUBECONFIG=/etc/origin/master/admin.kubeconfig
+
+runcmd:
+ - yum clean all
+
+packages:
+ - wget
+ - git
+ - net-tools
+ - bind-utils
+ - iptables-services
+ - bridge-utils
+ - bash-completion
+ - NetworkManager
+
 #write_files:
 #- path: /etc/sudoers.d/99-ec2-user-cloud-init-requiretty
 #  owner: root:root

@@ -10,7 +10,7 @@ This is an example Ansible playbook that:
 2. Starts an OpenShift All-In-One cluster in the EC2
 3. Deploys a sample cakephp-mysql app in project 'myproject'
 4. Can be configured to run any post-cluster plays you need, just add any plays to 'devenv-launch.yml'
-5. Can be run with '-e LOCAL_BUILD=True'
+5. Can be run with '-e LOCAL_BUILD=True' see `Notes-Local Build` below for more info.
    - syncs your local origin code to the ec2, builds if necessary and restarts services with locally built binaries
 
 ###Initial Preparation Local Machine:
@@ -43,10 +43,11 @@ All tasks are defined in roles/<task>/tasks/main.yml.
 
 Your ec2 instance will be named: '$USER-allinone-devenv' in the AWS console.
 
-## Now What?:
+## Now What?
 
 * You can run oc commands locally OR you can ssh into your ec2 and run oc commands there
-  (you are logged in as 'system:admin' in your ec2 instance).  You can login as 'admin/password' on your local machine.
+  (you are logged in as 'system:admin' in your ec2 instance).       
+  You can login as 'admin/password' on your local machine.      
   `$ oc login -u admin -p password <public_dns_of _ec2>:8443`
 
 * To access the web console:
@@ -68,4 +69,22 @@ This playbook defaults to launching a 'centos7' AMI.  If you prefer 'rhel7' and 
 a pool id for subscription-manager, then fill in vars/launch_vars.yml, vars/user_vars.yml  and use 
 `$ ansible-playbook -e OS=rhel7 devenv-launch.yml`
 
+### Notes-Local Build:
 
+* `$ ansible-playbook -e LOCAL_BUILD=True devenv-launch.yml` will restart origin services      
+   with locally build origin binaries and will set the PATH appropriately for openshift|oc|oadm
+
+* playbook will sync local origin repository, expected at `../origin` from 'origin-allinone-devenv'      
+  or passed as `-e ORIGIN_PATH=/your/local/path/to/origin`.  Origin repo will be at /data/origin in ec2.     
+  If your local machine is linux it is recommended to build the binaries locally **before** running     
+  the playbook.  This is much more efficient.
+
+* If /data/origin/_output/local/bin/linux/amd64 dir is not populated with the binaries in the ec2,     
+  then golang will be installed and playbook will run `make` from `/data/origin`.  This takes     
+  a few minutes and lots of memory.
+
+* Currently, the latest rpm available in copr is v1.3.1.  Therefor, this is the latest version 
+  with which to start origin systemd services/run the playbook (until I figure out the workaround).      
+  To use LOCAL_BUILD=True, you should checkout the version 1.3.1 from your local origin repository.           
+  Run `git checkout v1.3.1` from your local origin repository before running `make` (if running linux locally)     
+  and before running the playbook.

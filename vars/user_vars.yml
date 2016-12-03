@@ -14,14 +14,3 @@ subscription_username: fillin
 subscription_password: fillin
 subscription_pool_id: fillin
 
-required_packages:
-- wget
-- git
-- net-tools
-- bind-utils
-- iptables-services
-- bridge-utils
-- bash-completion
-- NetworkManager
-- golang
-

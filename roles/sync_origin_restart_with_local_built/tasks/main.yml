@@ -1,5 +1,5 @@
 ---
-- name: check if ose dir exists
+- name: check if origin dir exists
   stat: path=/data/origin
   register: origin_dir
 
@@ -17,6 +17,12 @@
 - name: Print info about building openshift|oc|oadm binaries
   debug:
     msg: "Now going to build OpenShift binaries from local origin, this takes a few minutes..."
+  when: 'which_openshift.stat.exists == False'
+
+- name: When LOCAL_BUILD, need to install golang, takes a few minutes
+  yum:
+    name: golang
+    state: present
   when: 'which_openshift.stat.exists == False'
 
 - name: Build origin binaries
