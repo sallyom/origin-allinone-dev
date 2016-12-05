@@ -57,4 +57,11 @@
 - set_fact:
     from_local_origin: "{{ from_local_origin }}"
 
+- set_fact:
+    oreg_url: "openshift/origin-${component}:local"
+  when: from_local_origin
+
+- set_fact:
+    oreg_url: openshift/origin-${component}:${version}
+  when: not from_local_origin
 

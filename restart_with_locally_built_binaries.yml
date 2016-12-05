@@ -3,6 +3,6 @@
   hosts: OSEv3
   remote_user: root
   roles:
-  - sync_origin_restart_with_local_built
-  tags: sync_origin_restart_with_local_built
+  - restart_with_local_built
+  tags: restart_with_local_built
 

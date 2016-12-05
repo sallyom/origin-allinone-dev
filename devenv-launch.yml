@@ -64,13 +64,20 @@
   - set_path_configure
   tags: set_path_configure
 
+- include: modify_services_docker_build_local.yml
+  vars:
+    from_local_origin: "{{ hostvars.localhost.from_local_origin }}"
+  when: from_local_origin
+
 # You can replace 'xip.io' with a custom DNS server
 # Configuration examples/options here:
 # https://raw.githubusercontent.com/openshift/openshift-ansible/master/inventory/byo/hosts.ose.example
 # Waiting for v1.4 to be available in copr...
 # openshift-ansible is a submodule in this repo.
+# oreg_url: "openshift/origin-${component}:local"
 - include: openshift-ansible/playbooks/byo/config.yml
   vars:
+    from_local_origin: "{{ hostvars.localhost.from_local_origin }}"
     deployment_type: origin
     cluster_id: devenv-origin
     openshift_release: v1.3
@@ -84,6 +91,7 @@
     openshift_master_cluster_method: native
     openshift_node_labels: "{'region': 'us-east-1', 'type': 'infra'}"
     openshift_scheduleable: True
+    oreg_url: "{{ hostvars.localhost.oreg_url }}"
     osm_default_subdomain: "{{ hostvars[groups['OSEv3'][0]].ansible_ec2_public_ipv4 }}.xip.io"
     openshift_hosted_registry_selector: 'type=infra'
     openshift_hosted_router_selector: 'type=infra'
@@ -114,6 +122,7 @@
     from_local_origin: "{{ hostvars.localhost.from_local_origin }}"
     local_origin_path: "{{ hostvars.localhost.local_origin_path }}"
   when: from_local_origin
+
 
 - name: "Grant admin access"
   hosts: OSEv3

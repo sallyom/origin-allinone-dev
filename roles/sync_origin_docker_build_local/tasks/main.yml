@@ -31,6 +31,37 @@
     chdir: /data/origin
   when: 'which_openshift.stat.exists == False'
 
+- name: Build pod image from local origin git branch v1.4
+  docker_image:
+     path: /data/origin/images/pod
+     name: openshift/origin-pod
+     dockerfile: Dockerfile.centos7
+     tag: local
+
+- name: Build deployer image from local origin git branch v1.4
+  docker_image:
+     path: /data/origin/images/deployer
+     name: openshift/origin-deployer
+     tag: local
+
+- name: Build router image from local origin git branch v1.4
+  docker_image:
+     path: /data/origin/images/router/haproxy
+     name: openshift/origin-haproxy-router
+     tag: local
+
+- name: install dockerregistry package
+  yum:
+    name: origin-dockerregistry
+    state: present
+
+- name: Build dockerregistry image from local origin git branch v1.4
+  docker_image:
+     path: /data/origin/images/dockerregistry
+     dockerfile: Dockerfile.centos7edited
+     name: openshift/origin-docker-registry
+     tag: local
+
 # If setup was used to launch from copr rpm, and then with LOCAL_BUILD, the PATH won't be set
 # correctly in the ec2, so need this to be sure:
 - name: Make sure PATH is set correctly for non-local-build setup
@@ -59,12 +90,5 @@
       [Service]
       ExecStart=
       ExecStart=/data/origin/_output/local/bin/linux/amd64/openshift start node --config=${CONFIG_FILE} $OPTIONS
-
-- name: restart openshift services
-  command: "{{ item }}"
-  with_items:
-    - systemctl daemon-reload
-    - systemctl restart origin-master
-    - systemctl restart origin-node
 
 

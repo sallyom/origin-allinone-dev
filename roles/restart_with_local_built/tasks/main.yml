@@ -1,0 +1,9 @@
+---
+- name: restart openshift services
+  command: "{{ item }}"
+  with_items:
+    - systemctl daemon-reload
+    - systemctl restart origin-master
+    - systemctl restart origin-node
+
+

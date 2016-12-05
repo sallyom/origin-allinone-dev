@@ -1,0 +1,8 @@
+---
+- name: "Modify services openshift master and node and docker build local images"
+  hosts: OSEv3
+  remote_user: root
+  roles:
+  - sync_origin_docker_build_local
+  tags: sync_origin_docker_build_local
+

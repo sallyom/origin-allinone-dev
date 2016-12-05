@@ -5,7 +5,7 @@
 # SEE: https://aws.amazon.com/premiumsupport/knowledge-center/ec2-linux-ssh-troubleshooting
 # SEE: 'VPC Dashboard / VPC Wizard' in AWS console
 #
-key_name: awskeyname # EDIT TO YOUR OWN KEYNAME FOR LAUNCHING YOUR EC2s
+key_name: libra # EDIT TO YOUR OWN KEYNAME FOR LAUNCHING YOUR EC2s
 #ami_id: ami-b63769a1 # public rhel7 AMI
 ami_id: ami-6d1c2007 # Marketplace Centos7
 #ami_id: ami-c94878de #private centos7
