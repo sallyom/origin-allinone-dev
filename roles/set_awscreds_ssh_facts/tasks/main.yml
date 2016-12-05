@@ -46,6 +46,11 @@
 - set_fact:
     local_origin_path: "{{ local_origin_path }}"
 
+# With -e SYNC=True, and -e LOCAL_BUILD=True, local origin will be synced, otherwise, 
+# will only be synced if it's the first time running with -e LOCAL_BUILD=True
+- set_fact:
+    sync_origin: "{{ sync_origin }}"
+
 - debug:
     msg: "LOCAL ORIGIN REPO: {{ hostvars.localhost.local_origin_path }}"
 
@@ -57,11 +62,12 @@
 - set_fact:
     from_local_origin: "{{ from_local_origin }}"
 
+# Have this hear to open possibility of running with :local if introduce all local_build
 - set_fact:
-    oreg_url: "openshift/origin-${component}:local"
+    oreg_url: "openshift/origin-${component}:${version}"
   when: from_local_origin
 
 - set_fact:
-    oreg_url: openshift/origin-${component}:${version}
+    oreg_url: "openshift/origin-${component}:${version}"
   when: not from_local_origin
 

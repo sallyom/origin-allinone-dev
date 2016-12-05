@@ -1,17 +1,33 @@
 ---
-- name: check if origin dir exists
-  stat: path=/data/origin
-  register: origin_dir
+- name: check if origin dir exists with marker file
+  stat: path=/data/src/github.com/openshift/origin/marker.file
+  register: origin_dir_marker
+
+- name: Remove marker file if running with SYNC
+  file:
+    path: /data/src/github.com/openshift/origin/marker.file
+    state: absent
+  when: origin_dir_marker.stat.exists and sync_origin
+
+- name: Second check for marker file
+  stat: path=/data/src/github.com/openshift/origin/marker.file
+  register: origin_dir_marker_second_check
 
 - name: sync local origin repo
   synchronize:
     src: "{{ local_origin_path }}"
-    dest: "/data"
+    dest: "/data/src/github.com/openshift"
     recursive: yes
-  when: origin_dir.stat.exists == False
+  when: origin_dir_marker_second_check.stat.exists == False
 
-- name: Check for openshift binaries in /data/origin/_output
-  stat: path=/data/origin/_output/local/bin/linux/amd64/openshift
+- name: Create marker file so sync will only happen when you remove that file
+  file:
+    path: /data/src/github.com/openshift/origin/marker.file
+    state: touch
+  when: origin_dir_marker.stat.exists == False
+
+- name: Check for openshift binaries in /data/src/github.com/openshift/origin/_output
+  stat: path=/data/src/github.com/openshift/origin/_output/local/bin/linux/amd64/openshift
   register: which_openshift
 
 - name: Print info about building openshift|oc|oadm binaries
@@ -28,44 +44,39 @@
 - name: Build origin binaries
   shell:
     cmd: make
-    chdir: /data/origin
+    chdir: /data/src/github.com/openshift/origin
   when: 'which_openshift.stat.exists == False'
 
-- name: Build pod image from local origin git branch v1.4
-  docker_image:
-     path: /data/origin/images/pod
-     name: openshift/origin-pod
-     dockerfile: Dockerfile.centos7
-     tag: local
+#- name: Build pod image from local origin git branch v1.4
+#  docker_image:
+#     path: /data/src/github.com/openshift/origin/images/pod
+#     name: openshift/origin-pod
+#     dockerfile: Dockerfile.centos7
+#     tag: local
 
-- name: Build deployer image from local origin git branch v1.4
-  docker_image:
-     path: /data/origin/images/deployer
-     name: openshift/origin-deployer
-     tag: local
+#- name: Build deployer image from local origin git branch v1.4
+#  docker_image:
+#     path: /data/src/github.com/openshift/origin/images/deployer
+#     name: openshift/origin-deployer
+#     tag: local
 
-- name: Build router image from local origin git branch v1.4
-  docker_image:
-     path: /data/origin/images/router/haproxy
-     name: openshift/origin-haproxy-router
-     tag: local
+#- name: Build router image from local origin git branch v1.4
+#  docker_image:
+#     path: /data/src/github.com/openshift/origin/images/router/haproxy
+#     name: openshift/origin-haproxy-router
+#     tag: local
 
-- name: install dockerregistry package
-  yum:
-    name: origin-dockerregistry
-    state: present
-
-- name: Build dockerregistry image from local origin git branch v1.4
-  docker_image:
-     path: /data/origin/images/dockerregistry
-     dockerfile: Dockerfile.centos7edited
-     name: openshift/origin-docker-registry
-     tag: local
+#- name: Build dockerregistry image from local origin git branch v1.4
+#  docker_image:
+#     path: /data/src/github.com/openshift/origin/images/dockerregistry
+#     dockerfile: Dockerfile.centos7edited
+#     name: openshift/origin-docker-registry
+#     tag: local
 
 # If setup was used to launch from copr rpm, and then with LOCAL_BUILD, the PATH won't be set
 # correctly in the ec2, so need this to be sure:
 - name: Make sure PATH is set correctly for non-local-build setup
-  lineinfile: dest=/etc/profile.d/openshift.sh state=present regexp='^(.*)PATH' line='export PATH=/data/origin/_output/local/bin/linux/amd64:/bin:/usr/local/sbin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin:/root/bin'
+  lineinfile: dest=/etc/profile.d/openshift.sh state=present regexp='^(.*)PATH' line='export PATH=/data/src/github.com/openshift/origin/_output/local/bin/linux/amd64:/bin:/usr/local/sbin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin:/root/bin'
 
 - name: Creates /etc/systemd/system/origin-master.service.d directory
   file: path=/etc/systemd/system/origin-master.service.d state=directory
@@ -80,7 +91,7 @@
     content: |
       [Service]
       ExecStart=
-      ExecStart=/data/origin/_output/local/bin/linux/amd64/openshift start master --config=${CONFIG_FILE} $OPTIONS
+      ExecStart=/data/src/github.com/openshift/origin/_output/local/bin/linux/amd64/openshift start master --config=${CONFIG_FILE} $OPTIONS
 
 - name: Create override.conf for origin-node.service
   blockinfile:
@@ -89,6 +100,6 @@
     content: |
       [Service]
       ExecStart=
-      ExecStart=/data/origin/_output/local/bin/linux/amd64/openshift start node --config=${CONFIG_FILE} $OPTIONS
+      ExecStart=/data/src/github.com/openshift/origin/_output/local/bin/linux/amd64/openshift start node --config=${CONFIG_FILE} $OPTIONS
 
 

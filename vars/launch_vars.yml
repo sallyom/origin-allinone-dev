@@ -1,16 +1,13 @@
 ---
-# These should be set up according to your AWS account.  You need to be able to launch 
-# ec2 instances that enable dns_hostnames and that you can ssh into from your local machine.
-#
-# SEE: https://aws.amazon.com/premiumsupport/knowledge-center/ec2-linux-ssh-troubleshooting
-# SEE: 'VPC Dashboard / VPC Wizard' in AWS console
-#
-key_name: libra # EDIT TO YOUR OWN KEYNAME FOR LAUNCHING YOUR EC2s
+#This is for launching 'qe-ready' centos7 AMI
+owner: 531415883065
+key_name: awskeyname # EDIT TO YOUR OWN KEYNAME FOR LAUNCHING YOUR EC2s
 #ami_id: ami-b63769a1 # public rhel7 AMI
-ami_id: ami-6d1c2007 # Marketplace Centos7
-#ami_id: ami-c94878de #private centos7
+#ami_id: ami-6d1c2007 # Marketplace Centos7
+#ami_id: ami-30724827 #private centos7
+launch_ami_find: "devenv-centos7_*"
 aws_region: us-east-1 # EDIT TO YOUR OWN REGION
-instance_type: m3.medium
+instance_type: t2.large
 assign_public_ip: yes
 vpc_subnet_id: subnet-cf57c596  # EDIT THIS TO A VPC SUBNET YOU HAVE ACCESS TO
 security_groups: [ 'sg-5875023f', 'sg-7e73221a', 'sg-e1760186', 'sg-0d1a5377'] # EDIT TO YOUR OWN
@@ -20,10 +17,10 @@ instance_tags:
 os: "{{ OS|default('centos7') }}"
 
 # If you pass '-e LOCAL_BUILD=True' then the playbook will sync your origin repo to the ec2 and build
-# binaries in /data/origin/_output/local/bin/linux/amd64/openshift|oc|oadm
+# binaries in /data/src/github.com/openshift/origin/_output/local/bin/linux/amd64/openshift|oc|oadm
 # Playbook expects origin repo ../origin from this repo.  If you set LOCAL_BUILD=True, you need the
 # origin repo cloned here, or you can specify where it is with '-e ORIGIN_PATH'
 from_local_origin: "{{ LOCAL_BUILD|default('False') }}"
 default_origin_path: "{{ hostvars.localhost.default_origin_path }}"
 local_origin_path: "{{ ORIGIN_PATH|default(default_origin_path) }}"
-
+sync_origin: "{{ SYNC|default('False') }}"

@@ -7,9 +7,9 @@
     cmd: "which openshift || :"
   register: which_openshift
 
-- name: Remove /data/origin_output from PATH if not LOCAL_BUILD and the binary directory exists
+- name: Remove /data/src/github.com/openshift/origin_output from PATH if not LOCAL_BUILD and the binary directory exists
   lineinfile: dest=/etc/profile.d/openshift.sh state=present regexp='^(.*)PATH' line='export PATH=/bin:/usr/local/sbin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin:/root/bin'
-  when: '"origin/_output/local/bin/linux/amd64" in which_openshift.stdout and not from_local_origin'
+  when: '"/data/src/github.com/openshift/origin/_output/local/bin/linux/amd64" in which_openshift.stdout and not from_local_origin'
 
 - name: start, enable NetworkManager
   command: "{{ item }}"
@@ -17,14 +17,3 @@
     - "systemctl enable NetworkManager"
     - "systemctl start NetworkManager"
   when: os == "centos7"
-
-- name: Download charlie rpm
-  shell:
-    cmd: "{{ item }}"
-  with_items:
-   - 'curl -o /tmp/charlie-0.5-1.el6_2.noarch.rpm https://mirror.openshift.com/pub/oso/rhel-6/x86_64/charlie-0.5-1.el6_2.noarch.rpm'
-
-- name: Install charlie rpm
-  yum:
-    name: /tmp/charlie-0.5-1.el6_2.noarch.rpm
-    state: present

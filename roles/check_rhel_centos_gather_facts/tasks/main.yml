@@ -30,7 +30,11 @@
 - debug:
     msg: "Waiting for cloud-init to finish installing packages..."
 
+- name: Get date output to check cloud-init finish
+  shell:
+    cmd: 'date +"%b  %-d"'
+  register: date
+
 - name: Wait for cloud-init to finish, waiting for package installs to complete
   shell:
-    cmd: 'while ! grep "Cloud-init .* finished" /var/log/cloud-init.log; do echo "$(date -Ins) Waiting for cloud-init to finish" sleep 10; done'
- 
+    cmd: 'while ! grep "{{ date.stdout }} .* Cloud-init .* finished" /var/log/cloud-init.log; do echo "$(date -Ins) Waiting for cloud-init to finish" sleep 10; done'

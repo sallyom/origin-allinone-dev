@@ -1,10 +1,10 @@
 ---
 - name: Check for origin _output dir
-  stat: path=/data/origin/_output
+  stat: path=/data/src/github.com/openshift/origin/_output
   register: origin_output_dir
 
 - name: Remove binaries from origin
-  file: path=/data/origin/_output state=absent
+  file: path=/data/src/github.com/openshift/origin/_output state=absent
   when: origin_output_dir.stat.exists
 
 - name: Check for master dropin dir
@@ -24,7 +24,7 @@
   when: node_dropin.stat.exists
 
 # This removes the path to the locally built binaries at 
-# /data/origin/_output/local/bin/linux/amd64 if those binaries exist.
+# /data/src/github.com/openshift/origin/_output/local/bin/linux/amd64 if those binaries exist.
 - name: Set PATH
   lineinfile: dest=/etc/profile.d/openshift.sh regexp='^(.*)PATH' line='export PATH=/bin:/usr/local/sbin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin:/root/bin'
 

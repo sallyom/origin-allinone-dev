@@ -66,7 +66,9 @@
 
 - include: modify_services_docker_build_local.yml
   vars:
+    sync_origin: "{{ hostvars.localhost.sync_origin }}"
     from_local_origin: "{{ hostvars.localhost.from_local_origin }}"
+    local_origin_path: "{{ hostvars.localhost.local_origin_path }}"
   when: from_local_origin
 
 # You can replace 'xip.io' with a custom DNS server
@@ -80,14 +82,13 @@
     from_local_origin: "{{ hostvars.localhost.from_local_origin }}"
     deployment_type: origin
     cluster_id: devenv-origin
-    openshift_release: v1.3
+    openshift_release: v1.4
     openshift_additional_repos:
-    - id: openshift-origin-copr
-      name: OpenShift Origin COPR
-      baseurl: 'https://copr-be.cloud.fedoraproject.org/results/maxamillion/origin-next/epel-7-$basearch'
+    - id: paas7-openshift-future-candidate
+      name: Origin Latest
+      baseurl: 'https://cbs.centos.org/repos/paas7-openshift-future-candidate/x86_64/os'
       enabled: 1
-      gpgcheck': 1
-      gpgkey: 'https://copr-be.cloud.fedoraproject.org/results/maxamillion/origin-next/pubkey.gpg'
+      gpgcheck': 0
     openshift_master_cluster_method: native
     openshift_node_labels: "{'region': 'us-east-1', 'type': 'infra'}"
     openshift_scheduleable: True

@@ -5,7 +5,8 @@
   command: oc delete project myproject
   ignore_errors: True
 
-- pause: seconds=10
+- name: Switch back to default project
+  command: oc project default
 
 - name: Create myproject
   command: 'oc new-project myproject'

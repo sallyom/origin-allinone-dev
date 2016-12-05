@@ -1,20 +1,20 @@
 ---
 - name: Build pod image from local origin git branch v1.4
    docker_image:
-     path: /data/origin/images/pod
+     path: /data/src/github.com/openshift/origin/images/pod
      name: openshift/origin-pod
      dockerfile: Dockerfile.centos7
      tag: local
 
 - name: Build deployer image from local origin git branch v1.4
    docker_image:
-     path: /data/origin/images/deployer
+     path: /data/src/github.com/openshift/origin/images/deployer
      name: openshift/origin-deployer
      tag: local
 
 - name: Build router image from local origin git branch v1.4
    docker_image:
-     path: /data/origin/images/router/haproxy
+     path: /data/src/github.com/openshift/origin/images/router/haproxy
      name: openshift/origin-haproxy-router
      tag: local
 
@@ -25,7 +25,7 @@
 
 - name: Build dockerregistry image from local origin git branch v1.4
    docker_image:
-     path: /data/origin/images/dockerregistry
+     path: /data/src/github.com/openshift/origin/images/dockerregistry
      dockerfile: Dockerfile.centos7edited
      name: openshift/origin-docker-registry
      tag: local

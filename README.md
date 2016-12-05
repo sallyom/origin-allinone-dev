@@ -4,6 +4,11 @@ $ ansible-playbook devenv-launch.yml
 ## Ansible playbook for provisioning OpenShift All-In-One Using AWS
 (for testing/development)
 
+### Differences from master branch:
+* This branch launches with `devenv-centos7_*` AMI
+* This branch syncs local origin to /data/src/github.com/openshift/origin in ec2
+* Does not install charlie rpm, since it's already there.
+ 
 This is an example Ansible playbook that:
 
 1. Launches an EC2 instance, by default with 'centos7' AMI, or you can configure to run with 'rhel7' 
@@ -12,6 +17,9 @@ This is an example Ansible playbook that:
 4. Can be configured to run any post-cluster plays you need, just add any plays to 'devenv-launch.yml'
 5. Can be run with '-e LOCAL_BUILD=True' see `Notes-Local Build` below for more info.
    - syncs your local origin code to the ec2, builds if necessary and restarts services with locally built binaries
+6. When running with '-e LOCAL_BUILD=True', can also pass '-e SYNC=True', to ensure local branch     
+   is synced with that run.  Otherwise, local branch will only be synced during original run of 
+   '-e LOCAL_BUILD=True'
 
 ###Initial Preparation Local Machine:
 *  Clone this repository:      
@@ -30,11 +38,6 @@ $cat ~/.aws/credentials
     aws_access_key_id = XXXX
     aws_secret_access_key = XXXXX
 ```
-* I've provided a publicly available `centos7` AMI in `vars/launch_vars.yml`, but you can change to any centos7 or rhel7 AMI.
-* You need to fill in `vars/launch_vars.yml`:
-  * This setup assumes you have an AWS account and a VPC that enables public DNS hostnames.
-    See the **VPC Dashboard, Start VPC Wizard** link in the AWS console for more info.
-  * More info: https://aws.amazon.com/premiumsupport/knowledge-center/ec2-linux-ssh-troubleshooting/
 
 Then run this:
 ### $ ansible-playbook devenv-launch.yml
@@ -75,16 +78,17 @@ a pool id for subscription-manager, then fill in vars/launch_vars.yml, vars/user
    with locally build origin binaries and will set the PATH appropriately for openshift|oc|oadm
 
 * playbook will sync local origin repository, expected at `../origin` from 'origin-allinone-devenv'      
-  or passed as `-e ORIGIN_PATH=/your/local/path/to/origin`.  Origin repo will be at /data/origin in ec2.     
+  or passed as `-e ORIGIN_PATH=/your/local/path/to/origin`.  Origin repo will be at /data/src/github.com/openshift/origin in ec2.     
   If your local machine is linux it is recommended to build the binaries locally **before** running     
-  the playbook.  This is much more efficient.
+  the playbook.  This is much more efficient.  I repeat, run `make` from your `local origin repo`     
+  before running `ansible-playbook -e LOCAL_BUILD=True devenv-launch.yml`. 
 
-* If /data/origin/_output/local/bin/linux/amd64 dir is not populated with the binaries in the ec2,     
-  then golang will be installed and playbook will run `make` from `/data/origin`.  This takes     
+* If /data/src/github.com/openshift/origin/marker.file is not in the ec2, then the local origin repo will be synced,      
+  golang will be installed and playbook will run `make` from `/data/src/github.com/openshift/origin`.  This takes     
   a few minutes and lots of memory.
 
-* Currently, the latest rpm available in copr is v1.3.1.  Therefor, this is the latest version 
-  with which to start origin systemd services/run the playbook (until I figure out the workaround).      
-  To use LOCAL_BUILD=True, you should checkout the version 1.3.1 from your local origin repository.           
-  Run `git checkout v1.3.1` from your local origin repository before running `make` (if running linux locally)     
-  and before running the playbook.
+* On subsequent runs of the playbook, if you run with '-e LOCAL_BUILD=True -e SYNC=True', then     
+  the local origin branch will be re-synced.  Otherwise, it will only be synced the first run.
+* Currently, this branch will install origin v1.4 rpm.  Therefor,      
+  to use LOCAL_BUILD=True, you should checkout the version 1.4.x from your local origin repository.    
+  (master branch works)               

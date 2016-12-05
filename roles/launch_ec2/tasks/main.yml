@@ -1,11 +1,23 @@
 ---
-# This example launches a rhel7 AMI
+# This launches a qe-ready devenv-centos7_* AMI
+- name: search for qe-ready devenv-centos7_* AMI
+  ec2_ami_find:
+    owner: "{{ owner }}"
+    name: "{{ launch_ami_find }}"
+    region: "{{ aws_region }}"
+    no_result_action: fail
+  register: centos7_ami_find
+
+- name: Set launch AMI centos7
+  set_fact:
+    image_id: "{{ centos7_ami_find.results[0].ami_id }}"
+
 - name: create an EC2 instance
   ec2:
     key_name: "{{ key_name }}"
     region: "{{ aws_region }}"
     instance_type: "{{ instance_type }}"
-    image: "{{ ami_id }}"
+    image: "{{ image_id }}"
     vpc_subnet_id: "{{ vpc_subnet_id }}"
     group_id: "{{ security_groups }}"
     user_data: "{{ lookup('template', 'templates/user_data.j2') }}"
